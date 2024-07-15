@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Style Recommendation App</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <input type="file" id="csvFileInput" accept=".csv" onchange="loadCSVFile(event)" />
+    <div class="container">
+        <h1 id="main-heading">Style Recommendation App</h1>
+        
+        <div id="language-selection">
+            <label for="language">Select your language:</label>
+            <select id="language" onchange="changeLanguage()">
+                <option value="en">English</option>
+                <option value="hi">हिन्दी</option>
+                <option value="fr">Français</option>
+                <option value="es">Español</option>
+            </select>
+        </div>
+
+        <section id="know-your-body-type">
+            <h2 data-translate="knowYourBodyType">Know Your Body Type</h2>
+            <form>
+                <table>
+                    <tr>
+                        <td><label for="gender" data-translate="gender">Gender:</label></td>
+                        <td>
+                            <select id="gender" onchange="changeGender()">
+                                <option value="women" data-translate="women">Women</option>
+                                <option value="men" data-translate="men">Men</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="height" id="height-label" data-translate="height">Height (cm):</label></td>
+                        <td><input type="number" id="height" name="height" required></td>
+                    </tr>
+                    <tr>
+                        <td><label for="weight" id="weight-label" data-translate="weight">Weight (kg):</label></td>
+                        <td><input type="number" id="weight" name="weight" required></td>
+                    </tr>
+                </table>
+
+                <div id="womenBodyTypeFields">
+                    <table>
+                        <tr>
+                            <td><label for="bust" data-translate="womenBust">Bust (inches):</label></td>
+                            <td><input type="number" id="bust" name="bust"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="waist" data-translate="womenWaist">Waist (inches):</label></td>
+                            <td><input type="number" id="waist" name="waist"></td>
+                        </tr>
+                        <tr>
+                            <td><label for="hip" data-translate="womenHip">Hip (inches):</label></td>
+                            <td><input type="number" id="hip" name="hip"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div id="menBodyTypeFields">
+                    <table>
+                        <tr>
+                            <td><label for="chest" data-translate="menChest">Chest (inches):</label></td>
+                            <td><input type="number" id="chest" name="chest"></td>
+                        </tr>
+                    </table>
+                </div>
+
+                <button type="button" onclick="knowYourBodyType()" data-translate="knowYourBodyTypeButton">Know Your Body Type</button>
+            </form>
+            
+            <div id="bodyTypeResult">
+                <h3 data-translate="yourBodyType">Your Body Type:</h3>
+                <table>
+                    <tr>
+                        <td><label data-translate="bodyTypeLabel">Body Type:</label></td>
+                        <td><span id="bodyType"></span></td>
+                    </tr>
+                    <tr>
+                        <td><label data-translate="bmiLabel">BMI:</label></td>
+                        <td><span id="bmi"></span></td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <section id="style-recommendations">
+            <h2 data-translate="styleRecommendations">Style Recommendations</h2>
+            
+            <label for="color-preference" data-translate="colorPreference">Preferred Color:</label>
+            <input type="text" id="color-preference" name="color-preference">
+            
+            <label for="style-preference" data-translate="stylePreference">Style Preference:</label>
+            <select id="style-preference">
+                <option value="">Select a style preference</option>
+                <option value="formal" data-translate="formal">Formal</option>
+                <option value="casual" data-translate="casual">Casual</option>
+                <option value="boho" data-translate="boho">Boho</option>
+                <option value="sporty" data-translate="sporty">Sporty</option>
+                <option value="wedding" data-translate="wedding">Wedding</option>
+                <option value="ethnic" data-translate="ethnic">Ethnic</option>
+                <option value="partywear" data-translate="partywear">Partywear</option>
+            </select>
+
+            <label for="item-preference" data-translate="itemPreference">Item Preference:</label>
+            <select id="item-preference">
+                <option value="">Select an item preference</option>
+                <option value="skirt" data-translate="skirt">Skirt</option>
+                <option value="dress" data-translate="dress">Dress</option>
+                <option value="top" data-translate="top">Top</option>
+                <option value="pants" data-translate="pants">Pants</option>
+                <option value="suit" data-translate="suit">Suit</option>
+                <option value="kurta" data-translate="kurta">Kurta</option>
+            </select>
+
+            <button id="recommendation-button" type="button" onclick="recommendStyles()" data-translate="getRecommendationsButton">Get Recommendations</button>
+            <div id="styleRecommendation"></div>
+        </section>
+
+        <div id="recommendations-container"></div>
+
+        <section id="influencer-endorsements">
+            <h2 data-translate="influencerEndorsements">Top Myntra Influencers</h2>
+            <div class="endorsement">
+                <img src="C:/Users/jssea/OneDrive/Pictures/outfit1.jpeg" alt="Influencer 1">
+                <p>Myntra Influencer 1</p>
+            </div>
+            <div class="endorsement">
+                <img src="C:/Users/jssea/OneDrive/Pictures/outfit2.jpeg" alt="Influencer 2">
+                <p>Myntra Influencer 2</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let csvRecommendations = [];
+
+        function loadCSVFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    header: true,
+                    dynamicTyping: true,
+                    complete: function(results) {
+                        csvRecommendations = results.data;
+                    }
+                });
+            }
+        }
+
+        function recommendStyles() {
+            const colorPreference = document.getElementById("color-preference").value.toLowerCase();
+            const stylePreference = document.getElementById("style-preference").value.toLowerCase();
+            const itemPreference = document.getElementById("item-preference").value.toLowerCase();
+            
+            const filteredRecommendations = csvRecommendations.filter(item => 
+                item.preferred_color.toLowerCase() === colorPreference &&
+                item.style_preference.toLowerCase() === stylePreference &&
+                item.item_preference.toLowerCase() === itemPreference
+            );
+            
+            let recommendationHtml = "<table><thead><tr><th>Image</th><th>Description</th><th>Influencer</th><th>Influencer Picture</th></tr></thead><tbody>";
+
+            if (filteredRecommendations.length > 0) {
+                filteredRecommendations.forEach(rec => {
+                    recommendationHtml += `<tr>
+                        <td><img src="${rec.imgSrc}" alt="${rec.description}" width="100"></td>
+                        <td>${rec.description}</td>
+                        <td>${rec.influencer}</td>
+                        <td><img src="${rec.influencerPicture}" alt="${rec.influencer}" width="100"></td>
+                    </tr>`;
+                });
+            } else {
+                recommendationHtml += "<tr><td colspan='4'>No recommendations available.</td></tr>";
+            }
+
+            recommendationHtml += "</tbody></table>";
+            document.getElementById("styleRecommendation").innerHTML = recommendationHtml;
+        }
+    </script>
+</body>
+</html>
